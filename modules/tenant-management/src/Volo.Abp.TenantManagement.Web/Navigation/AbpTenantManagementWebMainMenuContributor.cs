@@ -9,25 +9,23 @@ namespace Volo.Abp.TenantManagement.Web.Navigation
 {
     public class AbpTenantManagementWebMainMenuContributor : IMenuContributor
     {
-        public virtual async Task ConfigureMenuAsync(MenuConfigurationContext context)
+        public virtual Task ConfigureMenuAsync(MenuConfigurationContext context)
         {
             if (context.Menu.Name != StandardMenus.Main)
             {
-                return;
+                return Task.CompletedTask;
             }
 
             var administrationMenu = context.Menu.GetAdministration();
 
-            var authorizationService = context.ServiceProvider.GetRequiredService<IAuthorizationService>();
-            var l = context.ServiceProvider.GetRequiredService<IStringLocalizer<AbpTenantManagementResource>>();
+            var l = context.GetLocalizer<AbpTenantManagementResource>();
 
             var tenantManagementMenuItem = new ApplicationMenuItem(TenantManagementMenuNames.GroupName, l["Menu:TenantManagement"], icon: "fa fa-users");
             administrationMenu.AddItem(tenantManagementMenuItem);
 
-            if (await authorizationService.IsGrantedAsync(TenantManagementPermissions.Tenants.Default))
-            {
-                tenantManagementMenuItem.AddItem(new ApplicationMenuItem(TenantManagementMenuNames.Tenants, l["Tenants"], url: "/TenantManagement/Tenants"));
-            }
+            tenantManagementMenuItem.AddItem(new ApplicationMenuItem(TenantManagementMenuNames.Tenants, l["Tenants"], url: "~/TenantManagement/Tenants", requiredPermissionName: TenantManagementPermissions.Tenants.Default));
+
+            return Task.CompletedTask;
         }
     }
 }

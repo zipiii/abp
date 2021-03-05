@@ -49,7 +49,7 @@ namespace Volo.Abp.Cli.ProjectBuilding
 
         public async Task<ProjectBuildResult> BuildAsync(ProjectBuildArgs args)
         {
-            var templateInfo = GetTemplateInfo(args);
+            var templateInfo = await GetTemplateInfoAsync(args);
 
             NormalizeArgs(args, templateInfo);
 
@@ -57,7 +57,8 @@ namespace Volo.Abp.Cli.ProjectBuilding
                 args.TemplateName,
                 SourceCodeTypes.Template,
                 args.Version,
-                args.TemplateSource
+                args.TemplateSource,
+                args.ExtraProperties.ContainsKey(NewCommand.Options.Preview.Long)
             );
 
             DeveloperApiKeyResult apiKeyResult = null;
@@ -119,6 +120,7 @@ namespace Volo.Abp.Cli.ProjectBuilding
             var options = args.ExtraProperties
                 .Where(x => !x.Key.Equals(CliConsts.Command, StringComparison.InvariantCultureIgnoreCase))
                 .Where(x => !x.Key.Equals(NewCommand.Options.Tiered.Long, StringComparison.InvariantCultureIgnoreCase))
+                .Where(x => !x.Key.Equals(NewCommand.Options.Preview.Long, StringComparison.InvariantCultureIgnoreCase))
                 .Where(x => !x.Key.Equals(NewCommand.Options.DatabaseProvider.Long, StringComparison.InvariantCultureIgnoreCase) &&
                             !x.Key.Equals(NewCommand.Options.DatabaseProvider.Short, StringComparison.InvariantCultureIgnoreCase))
                 .Where(x => !x.Key.Equals(NewCommand.Options.OutputFolder.Long, StringComparison.InvariantCultureIgnoreCase) &&
@@ -173,11 +175,11 @@ namespace Volo.Abp.Cli.ProjectBuilding
             }
         }
 
-        private TemplateInfo GetTemplateInfo(ProjectBuildArgs args)
+        private async Task<TemplateInfo> GetTemplateInfoAsync(ProjectBuildArgs args)
         {
             if (args.TemplateName.IsNullOrWhiteSpace())
             {
-                return TemplateInfoProvider.GetDefault();
+                return await TemplateInfoProvider.GetDefaultAsync();
             }
             else
             {
